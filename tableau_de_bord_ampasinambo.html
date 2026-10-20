@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riposte Rougeole & Paludisme — Ampasinambo, Ifanadiana</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+:root{
+ --paper:#f6f1e7; --ink:#2b2622; --muted:#7a7066; --line:#e3daccc;
+ --card:#fffdf8; --cardline:#e7ded0;
+ --c-roug:#8a6aa6; --c-palu:#b5503f; --c-fievre:#d98c3a; --c-hosp:#3a8d8d;
+ --c-consult:#d9d2c3; --c-green:#5a8c5a; --c-grey:#a69c8e; --c-navy:#3a567a; --c-gold:#c9a24b;
+ --accent:#b5503f;
+}
+html.dark{
+ --paper:#1b1916; --ink:#efe9df; --muted:#a69c8e; --line:#332e28;
+ --card:#232019; --cardline:#36302a;
+ --c-consult:#4a443a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Public Sans',system-ui,sans-serif;background:var(--paper);color:var(--ink);
+ line-height:1.55;-webkit-font-smoothing:antialiased;
+ background-image:radial-gradient(circle at 12% 8%,rgba(181,80,63,.05),transparent 42%),radial-gradient(circle at 88% 4%,rgba(138,106,166,.06),transparent 40%);}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.serif{font-family:'Fraunces',Georgia,serif}
+
+/* top bar */
+.topbar{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--paper) 88%,transparent);
+ backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:.92rem;letter-spacing:.02em}
+.brand .dot{width:11px;height:11px;border-radius:50%;background:var(--accent)}
+.controls{display:flex;align-items:center;gap:8px}
+.toggle{border:1px solid var(--cardline);background:var(--card);color:var(--ink);
+ font-family:inherit;font-size:.8rem;font-weight:500;padding:7px 13px;border-radius:7px;cursor:pointer;
+ display:flex;align-items:center;gap:6px;transition:.15s}
+.toggle:hover{border-color:var(--accent);color:var(--accent)}
+
+/* hero */
+.hero{padding:62px 0 30px}
+.eyebrow{font-size:.78rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+.hero h1{font-size:clamp(2rem,4.6vw,3.3rem);font-weight:600;line-height:1.06;margin:16px 0 14px;max-width:16ch}
+.hero p.lead{font-size:1.08rem;color:var(--muted);max-width:62ch}
+.hero .meta{margin-top:18px;font-size:.84rem;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px 20px}
+.hero .meta b{color:var(--ink);font-weight:600}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin:30px 0 8px}
+.kpi{background:var(--card);border:1px solid var(--cardline);border-radius:9px;padding:20px 18px}
+.kpi .lab{font-size:.74rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:7px}
+.kpi .val{font-family:'Fraunces',serif;font-size:2.5rem;font-weight:600;line-height:1;margin-top:12px}
+.kpi .sub{font-size:.8rem;color:var(--muted);margin-top:7px}
+.kpi.lead-kpi{background:linear-gradient(160deg,#8a6aa6 0%,#7a5c93 100%);border-color:transparent;color:#fff}
+.kpi.lead-kpi .lab,.kpi.lead-kpi .sub{color:rgba(255,255,255,.82)}
+.kpi.palu-kpi{background:linear-gradient(160deg,#b5503f 0%,#a2432f 100%);border-color:transparent;color:#fff}
+.kpi.palu-kpi .lab,.kpi.palu-kpi .sub{color:rgba(255,255,255,.85)}
+
+/* sections */
+section{padding:34px 0 6px}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:6px}
+.sec-head .num{font-family:'Fraunces',serif;font-size:1.05rem;color:var(--accent);font-weight:600}
+.sec-head h2{font-family:'Fraunces',serif;font-size:1.55rem;font-weight:600}
+.sec-sub{color:var(--muted);font-size:.95rem;margin-bottom:20px;max-width:72ch}
+
+.grid{display:grid;gap:20px}
+.g2{grid-template-columns:1fr 1fr}
+.g2b{grid-template-columns:1.25fr 1fr}
+.card{background:var(--card);border:1px solid var(--cardline);border-radius:9px;padding:20px 20px 16px}
+.card h3{font-size:1rem;font-weight:600;margin-bottom:3px}
+.card .ctx{font-size:.82rem;color:var(--muted);margin-bottom:12px}
+.chart{width:100%;height:320px}
+.chart.tall{height:380px}
+.chart.big{height:420px}
+.insight{margin-top:12px;background:color-mix(in srgb,var(--accent) 7%,transparent);
+ border-radius:7px;padding:11px 14px;font-size:.86rem;color:var(--ink)}
+.insight b{color:var(--accent)}
+
+.legbar{display:flex;flex-wrap:wrap;gap:4px;margin:14px 0 2px}
+.chip{border:1px solid var(--cardline);background:var(--card);color:var(--muted);font-size:.78rem;
+ font-weight:500;padding:6px 12px;border-radius:20px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:7px}
+.chip .sw{width:10px;height:10px;border-radius:2px}
+.chip.on{color:var(--ink);border-color:var(--ink)}
+.chip.off{opacity:.45}
+
+footer{margin-top:48px;border-top:1px solid var(--line);padding:26px 0 56px;color:var(--muted);font-size:.8rem}
+footer b{color:var(--ink)}
+.src-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.g2,.g2b{grid-template-columns:1fr}.src-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="topbar"><div class="wrap">
+ <div class="brand"><span class="dot"></span>Investigation & Riposte — Ampasinambo, Ifanadiana</div>
+ <div class="controls">
+  <button class="toggle" id="themeBtn"><span id="themeIco"></span><span id="themeTxt">Mode sombre</span></button>
+ </div>
+</div></div>
+
+<div class="wrap">
+<header class="hero">
+ <div class="eyebrow">Tableau de bord épidémiologique</div>
+ <h1 class="serif">Quelle est l’ampleur de la flambée de rougeole et de paludisme&nbsp;?</h1>
+ <p class="lead">Synthèse de l’investigation et de la riposte menées dans la commune d’Ampasinambo, district d’Ifanadiana, entre juillet et octobre 2026. Les données couvrent les cas dépistés, les hospitalisations, les décès, l’enquête ménage et les soins de proximité.</p>
+ <div class="meta" id="heroMeta"></div>
+</header>
+
+<div class="kpis" id="kpis"></div>
+
+<section>
+ <div class="sec-head"><span class="num">01</span><h2 class="serif">La dynamique dans le temps</h2></div>
+ <p class="sec-sub">Évolution quotidienne de l’activité sanitaire du 24 septembre au 12 octobre 2026. Cliquez sur une série pour l’afficher ou la masquer.</p>
+ <div class="card">
+  <h3>Courbe épidémique quotidienne</h3>
+  <div class="ctx">Consultations externes (barres) et indicateurs clés (courbes)</div>
+  <div class="legbar" id="epiLeg"></div>
+  <div class="chart big" id="c_epi"></div>
+  <div class="insight" id="epiIns"></div>
+ </div>
+</section>
+
+<section>
+ <div class="sec-head"><span class="num">02</span><h2 class="serif">Rougeole : qui et où&nbsp;?</h2></div>
+ <p class="sec-sub">Répartition géographique, par âge et par statut vaccinal des cas suspects de rougeole.</p>
+ <div class="grid g2b">
+  <div class="card"><h3>Cas de rougeole par Fokontany</h3><div class="ctx">Localisation des cas suspects</div><div class="chart tall" id="c_rfk"></div><div class="insight" id="rfkIns"></div></div>
+  <div class="card"><h3>Par tranche d’âge</h3><div class="ctx">Qui est touché ?</div><div class="chart" id="c_rage"></div>
+   <h3 style="margin-top:14px">Par statut vaccinal</h3><div class="chart" id="c_rvac" style="height:220px"></div><div class="insight" id="rvacIns"></div></div>
+ </div>
+</section>
+
+<section>
+ <div class="sec-head"><span class="num">03</span><h2 class="serif">Paludisme : charge et gravité</h2></div>
+ <p class="sec-sub">Répartition géographique, par âge et par forme clinique des cas de paludisme.</p>
+ <div class="grid g2b">
+  <div class="card"><h3>Cas de paludisme par Fokontany</h3><div class="ctx">Localisation des cas</div><div class="chart tall" id="c_pfk"></div><div class="insight" id="pfkIns"></div></div>
+  <div class="card"><h3>Par tranche d’âge</h3><div class="ctx">Qui est touché ?</div><div class="chart" id="c_page"></div>
+   <h3 style="margin-top:14px">Par forme clinique</h3><div class="chart" id="c_pforme" style="height:220px"></div><div class="insight" id="pIns"></div></div>
+ </div>
+</section>
+
+<section>
+ <div class="sec-head"><span class="num">04</span><h2 class="serif">Hospitalisations & décès</h2></div>
+ <p class="sec-sub">Prise en charge hospitalière et profil des décès investigués.</p>
+ <div class="grid g2">
+  <div class="card"><h3>Hospitalisations par catégorie diagnostique</h3><div class="ctx" id="hospCtx"></div><div class="chart" id="c_hcat"></div><div class="insight" id="hcatIns"></div></div>
+  <div class="card"><h3>Hospitalisations par âge et issue</h3><div class="ctx">Répartition empilée</div><div class="chart" id="c_hissue"></div><div class="insight" id="hissueIns"></div></div>
+  <div class="card"><h3>Décès par tranche d’âge</h3><div class="ctx" id="decCtx"></div><div class="chart" id="c_dage"></div><div class="insight" id="dageIns"></div></div>
+  <div class="card"><h3>Lieu du décès</h3><div class="ctx">Formation sanitaire vs communautaire</div><div class="chart" id="c_dlieu" style="height:240px"></div><div class="insight" id="dlieuIns"></div></div>
+ </div>
+</section>
+
+<section>
+ <div class="sec-head"><span class="num">05</span><h2 class="serif">Couverture vaccinale & soins de proximité</h2></div>
+ <p class="sec-sub">Résultats de l’enquête ménage et nature des cas pris en charge au plus près des communautés.</p>
+ <div class="grid g2">
+  <div class="card"><h3>Statut vaccinal — enquête ménage</h3><div class="ctx" id="menCtx"></div><div class="chart" id="c_men"></div><div class="insight" id="menIns"></div></div>
+  <div class="card"><h3>Soins de proximité par diagnostic</h3><div class="ctx" id="soinCtx"></div><div class="chart" id="c_soin"></div><div class="insight" id="soinIns"></div></div>
+ </div>
+</section>
+
+<footer>
+ <div style="font-weight:600;color:var(--ink);margin-bottom:4px" class="serif">À propos de ces données</div>
+ <div class="src-grid">
+  <div><b>Source</b><br>Fichier d’investigation et de riposte — Ampasinambo, district d’Ifanadiana (Madagascar).</div>
+  <div><b>Période</b><br>Cas recensés de juillet à octobre 2026 ; point de situation quotidien du 24/09 au 12/10/2026.</div>
+  <div><b>Notes méthodologiques</b><br>Tranches d’âge : &lt;5, 5-14, 15-24, 25-49, &ge;50 ans. Les statuts vaccinaux de l’enquête ménage ont été regroupés. Cas de rougeole = cas suspects.</div>
+ </div>
+ <div style="margin-top:18px;opacity:.75">Tableau de bord généré automatiquement à partir du fichier Excel source — survolez les graphiques pour le détail.</div>
+</footer>
+</div>
+
+<script id="DATA" type="application/json">{
+ "epi": {
+  "labels": [
+   "24/09",
+   "25/09",
+   "26/09",
+   "27/09",
+   "28/09",
+   "29/09",
+   "30/09",
+   "01/10",
+   "02/10",
+   "03/10",
+   "04/10",
+   "05/10",
+   "06/10",
+   "07/10",
+   "08/10",
+   "09/10",
+   "10/10",
+   "11/10",
+   "12/10"
+  ],
+  "consult": [
+   81.0,
+   83.0,
+   40.0,
+   36.0,
+   88.0,
+   33.0,
+   53.0,
+   42.0,
+   33.0,
+   53.0,
+   35.0,
+   83.0,
+   56.0,
+   73.0,
+   71.0,
+   44.0,
+   36.0,
+   24.0,
+   65.0
+  ],
+  "fievre": [
+   17.0,
+   14.0,
+   15.0,
+   24.0,
+   38.0,
+   15.0,
+   22.0,
+   13.0,
+   12.0,
+   30.0,
+   22.0,
+   29.0,
+   19.0,
+   26.0,
+   22.0,
+   15.0,
+   10.0,
+   10.0,
+   16.0
+  ],
+  "rdtpos": [
+   5.0,
+   4.0,
+   5.0,
+   11.0,
+   9.0,
+   5.0,
+   10.0,
+   7.0,
+   5.0,
+   10.0,
+   6.0,
+   4.0,
+   5.0,
+   7.0,
+   5.0,
+   3.0,
+   1.0,
+   3.0,
+   8.0
+  ],
+  "roug": [
+   1.0,
+   9.0,
+   2.0,
+   3.0,
+   5.0,
+   5.0,
+   5.0,
+   2.0,
+   3.0,
+   4.0,
+   7.0,
+   15.0,
+   4.0,
+   8.0,
+   4.0,
+   4.0,
+   2.0,
+   3.0,
+   1.0
+  ],
+  "hosp": [
+   13.0,
+   3.0,
+   3.0,
+   3.0,
+   2.0,
+   0.0,
+   5.0,
+   13.0,
+   10.0,
+   7.0,
+   6.0,
+   2.0,
+   1.0,
+   4.0,
+   2.0,
+   4.0,
+   1.0,
+   4.0,
+   5.0
+  ]
+ },
+ "roug_total": 190,
+ "roug_fk": [
+  [
+   "Ampasinambo",
+   118
+  ],
+  [
+   "Sakavanana",
+   21
+  ],
+  [
+   "Ambodihara Nord",
+   20
+  ],
+  [
+   "Fiadanana",
+   16
+  ],
+  [
+   "Morarano",
+   5
+  ],
+  [
+   "Ambalapaiso",
+   4
+  ],
+  [
+   "Ampasimbola I",
+   2
+  ],
+  [
+   "Ambodivoangy",
+   2
+  ],
+  [
+   "Volobe",
+   2
+  ]
+ ],
+ "roug_vacc": [
+  [
+   "Statut inconnu",
+   133
+  ],
+  [
+   "Incomplètement vacciné",
+   49
+  ],
+  [
+   "Non vacciné VAR",
+   5
+  ],
+  [
+   "Vacciné",
+   2
+  ],
+  [
+   "Complètement vacciné",
+   1
+  ]
+ ],
+ "roug_age": [
+  [
+   "<5 ans",
+   128
+  ],
+  [
+   "5-14 ans",
+   53
+  ],
+  [
+   "15-24 ans",
+   5
+  ],
+  [
+   "Non précisé",
+   4
+  ]
+ ],
+ "roug_sexe": [
+  [
+   "M",
+   86
+  ],
+  [
+   "F",
+   104
+  ]
+ ],
+ "roug_coinf": [
+  [
+   "Non",
+   184
+  ],
+  [
+   "Oui",
+   6
+  ]
+ ],
+ "palu_total": 222,
+ "palu_fk": [
+  [
+   "Ampasinambo",
+   167
+  ],
+  [
+   "Sakavanana",
+   19
+  ],
+  [
+   "Ambodihara Nord",
+   9
+  ],
+  [
+   "Fiadanana",
+   6
+  ],
+  [
+   "Volobe",
+   5
+  ],
+  [
+   "Ambalapaiso",
+   5
+  ],
+  [
+   "Amparihibe",
+   4
+  ],
+  [
+   "Morarano",
+   2
+  ],
+  [
+   "Ambodiara",
+   2
+  ],
+  [
+   "Ampasimbola I",
+   1
+  ],
+  [
+   "Antelombelona",
+   1
+  ],
+  [
+   "Ampasimbola",
+   1
+  ]
+ ],
+ "palu_age": [
+  [
+   "<5 ans",
+   72
+  ],
+  [
+   "5-14 ans",
+   103
+  ],
+  [
+   "15-24 ans",
+   20
+  ],
+  [
+   "25-49 ans",
+   26
+  ],
+  [
+   ">=50 ans",
+   1
+  ]
+ ],
+ "palu_forme": [
+  [
+   "Paludisme simple",
+   206
+  ],
+  [
+   "Paludisme grave",
+   10
+  ],
+  [
+   "Syndrome palustre",
+   6
+  ]
+ ],
+ "palu_sexe": [
+  [
+   "M",
+   90
+  ],
+  [
+   "F",
+   132
+  ]
+ ],
+ "hosp_total": 35,
+ "hosp_cat": [
+  [
+   "Autres",
+   12
+  ],
+  [
+   "Rougeole",
+   10
+  ],
+  [
+   "Respiratoire",
+   5
+  ],
+  [
+   "Co-infection",
+   5
+  ],
+  [
+   "Infectieux",
+   3
+  ]
+ ],
+ "hosp_age_issue": {
+  "ages": [
+   "< 1 an",
+   "1-4 ans",
+   "5-14 ans",
+   "15-29 ans",
+   "30+ ans"
+  ],
+  "issues": [
+   "Exeat",
+   "En cours",
+   "Transfert",
+   "Référée CHU"
+  ],
+  "data": {
+   "Exeat": [
+    3,
+    11,
+    5,
+    0,
+    0
+   ],
+   "En cours": [
+    2,
+    4,
+    4,
+    0,
+    2
+   ],
+   "Transfert": [
+    0,
+    0,
+    1,
+    0,
+    0
+   ],
+   "Référée CHU": [
+    0,
+    0,
+    0,
+    1,
+    1
+   ]
+  }
+ },
+ "deces_age": [
+  [
+   "<1 an",
+   2
+  ],
+  [
+   "1-4 ans",
+   4
+  ],
+  [
+   "5-14 ans",
+   8
+  ],
+  [
+   ">=15 ans",
+   6
+  ],
+  [
+   "Inconnu",
+   4
+  ]
+ ],
+ "deces_lieu": [
+  [
+   "Formation sanitaire",
+   9
+  ],
+  [
+   "Communautaire",
+   15
+  ]
+ ],
+ "deces_total": 24,
+ "menage_vacc": [
+  [
+   "Non vacciné",
+   88
+  ],
+  [
+   "Incomplètement vacciné",
+   26
+  ],
+  [
+   "Vacciné (>=1 antigène)",
+   83
+  ],
+  [
+   "Inconnu / non précisé",
+   135
+  ]
+ ],
+ "menage_total": 332,
+ "menage_nb": 306,
+ "soins_total": 336,
+ "soins_diag": [
+  [
+   "Palu",
+   274
+  ],
+  [
+   "Rougeole",
+   52
+  ],
+  [
+   "Autres",
+   3
+  ],
+  [
+   "MAS",
+   2
+  ],
+  [
+   "PFA",
+   1
+  ],
+  [
+   "IRA",
+   1
+  ],
+  [
+   "Dermatose",
+   1
+  ],
+  [
+   "Inconnu",
+   1
+  ],
+  [
+   "MAM",
+   1
+  ]
+ ],
+ "kpi": {
+  "roug": 190,
+  "palu": 222,
+  "hosp": 35,
+  "deces": 24,
+  "menage": 306,
+  "fk_touches": 13
+ }
+}</script>
+<script>
+const D=JSON.parse(document.getElementById('DATA').textContent);
+const charts=[];
+function css(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function fmt(n){return n.toLocaleString('fr-FR');}
+const PAL=()=>({roug:css('--c-roug'),palu:css('--c-palu'),fievre:css('--c-fievre'),hosp:css('--c-hosp'),
+ consult:css('--c-consult'),green:css('--c-green'),grey:css('--c-grey'),navy:css('--c-navy'),gold:css('--c-gold')});
+
+// KPIs
+const k=D.kpi;
+document.getElementById('kpis').innerHTML=`
+ <div class="kpi lead-kpi"><div class="lab">Cas de rougeole</div><div class="val">${fmt(k.roug)}</div><div class="sub">cas suspects recensés</div></div>
+ <div class="kpi palu-kpi"><div class="lab">Cas de paludisme</div><div class="val">${fmt(k.palu)}</div><div class="sub">cas recensés</div></div>
+ <div class="kpi"><div class="lab">Décès investigués</div><div class="val">${fmt(k.deces)}</div><div class="sub">FS + communautaires</div></div>
+ <div class="kpi"><div class="lab">Hospitalisations</div><div class="val">${fmt(k.hosp)}</div><div class="sub">patients suivis</div></div>
+ <div class="kpi"><div class="lab">Ménages enquêtés</div><div class="val">${fmt(k.menage)}</div><div class="sub">${k.fk_touches} Fokontany touchés</div></div>`;
+document.getElementById('heroMeta').innerHTML=`<span><b>Commune</b> Ampasinambo</span><span><b>District</b> Ifanadiana</span><span><b>Maladies suivies</b> Rougeole · Paludisme</span>`;
+
+const GRID={left:8,right:18,top:14,bottom:6,containLabel:true};
+function baseTip(extra){return{trigger:'item',backgroundColor:css('--card'),borderWidth:0,
+ textStyle:{color:css('--ink'),fontFamily:'Public Sans',fontSize:12},
+ extraCssText:'box-shadow:0 6px 22px rgba(0,0,0,.14);border-radius:8px;padding:9px 12px;',...(extra||{})};}
+function axisStyle(){return{axisLine:{lineStyle:{color:css('--cardline')}},axisTick:{show:false},
+ axisLabel:{color:css('--muted'),fontSize:11},splitLine:{lineStyle:{color:css('--line')}}};}
+function mk(id,opt){const c=echarts.init(document.getElementById(id));c.setOption(opt);charts.push(c);return c;}
+
+// ---- EPI CURVE ----
+let epiChart;
+const epiSeriesDef=[
+ {key:'consult',name:'Consultations externes',type:'bar',color:'consult',data:D.epi.consult},
+ {key:'fievre',name:'Cas de fièvre',type:'line',color:'fievre',data:D.epi.fievre},
+ {key:'rdtpos',name:'TDR palu positifs',type:'line',color:'palu',data:D.epi.rdtpos},
+ {key:'roug',name:'Cas de rougeole',type:'line',color:'roug',data:D.epi.roug},
+ {key:'hosp',name:'Hospitalisés',type:'line',color:'hosp',data:D.epi.hosp}];
+const epiOn={consult:1,fievre:1,rdtpos:1,roug:1,hosp:1};
+function renderEpi(){
+ const P=PAL();
+ const series=epiSeriesDef.filter(s=>epiOn[s.key]).map(s=>s.type==='bar'?
+  {name:s.name,type:'bar',data:s.data,itemStyle:{color:P[s.color],borderRadius:[3,3,0,0]},barWidth:'52%',z:1}:
+  {name:s.name,type:'line',data:s.data,smooth:true,symbol:'circle',symbolSize:6,
+   lineStyle:{width:2.4,color:P[s.color]},itemStyle:{color:P[s.color]},z:3});
+ const opt={grid:{...GRID,top:18,bottom:30},
+  tooltip:{...baseTip({trigger:'axis',axisPointer:{type:'shadow'}})},
+  xAxis:{type:'category',data:D.epi.labels,...axisStyle(),axisLabel:{color:css('--muted'),fontSize:10,rotate:38}},
+  yAxis:{type:'value',...axisStyle()},series};
+ if(!epiChart){epiChart=echarts.init(document.getElementById('c_epi'));charts.push(epiChart);}
+ epiChart.setOption(opt,true);
+}
+function renderEpiLeg(){
+ const P=PAL();
+ document.getElementById('epiLeg').innerHTML=epiSeriesDef.map(s=>
+  `<span class="chip ${epiOn[s.key]?'on':'off'}" data-k="${s.key}"><span class="sw" style="background:${P[s.color]}"></span>${s.name}</span>`).join('');
+ document.querySelectorAll('#epiLeg .chip').forEach(ch=>ch.onclick=()=>{
+  const key=ch.dataset.k;epiOn[key]=epiOn[key]?0:1;renderEpi();renderEpiLeg();});
+}
+document.getElementById('epiIns').innerHTML='L’activité reste soutenue sur toute la période : les <b>cas de fièvre</b> et les <b>TDR paludisme positifs</b> évoluent en parallèle, tandis que les <b>cas de rougeole</b> connaissent un pic marqué début octobre (jusqu’à 15 cas/jour).';
+
+// ---- ROUGEOLE ----
+function hbar(id,data,color,unit){
+ const P=PAL();const cat=data.map(d=>d[0]),val=data.map(d=>d[1]);
+ return mk(id,{grid:{...GRID,left:8,right:36},
+  tooltip:baseTip({formatter:p=>`${p.name}<br><b>${fmt(p.value)}</b> ${unit}`}),
+  xAxis:{type:'value',...axisStyle()},
+  yAxis:{type:'category',data:cat.slice().reverse(),...axisStyle(),splitLine:{show:false}},
+  series:[{type:'bar',data:val.slice().reverse(),itemStyle:{color:typeof color==='string'?P[color]:color,borderRadius:[0,4,4,0]},barWidth:'62%',
+   label:{show:true,position:'right',color:css('--ink'),fontWeight:600,fontSize:11,formatter:p=>fmt(p.value)}}]});
+}
+function vbar(id,data,colors){
+ const P=PAL();const cat=data.map(d=>d[0]),val=data.map(d=>d[1]);
+ const cols=Array.isArray(colors)?colors:cat.map(()=>P[colors]);
+ return mk(id,{grid:{...GRID,bottom:24},
+  tooltip:baseTip({formatter:p=>`${p.name}<br><b>${fmt(p.value)}</b>`}),
+  xAxis:{type:'category',data:cat,...axisStyle(),axisLabel:{color:css('--muted'),fontSize:10,interval:0,rotate:cat.some(c=>c.length>9)?20:0}},
+  yAxis:{type:'value',...axisStyle()},
+  series:[{type:'bar',data:val.map((v,i)=>({value:v,itemStyle:{color:cols[i%cols.length],borderRadius:[4,4,0,0]}})),barWidth:'56%',
+   label:{show:true,position:'top',color:css('--ink'),fontWeight:600,fontSize:11,formatter:p=>fmt(p.value)}}]});
+}
+function donut(id,data,colors){
+ const P=PAL();const tot=data.reduce((a,d)=>a+d[1],0);
+ return mk(id,{tooltip:baseTip({formatter:p=>`${p.name}<br><b>${fmt(p.value)}</b> (${(p.value/tot*100).toFixed(0)}%)`}),
+  legend:{bottom:0,left:'center',textStyle:{color:css('--muted'),fontSize:11},icon:'circle',itemWidth:9,itemHeight:9},
+  series:[{type:'pie',radius:['42%','68%'],center:['50%','44%'],avoidLabelOverlap:true,
+   itemStyle:{borderColor:css('--card'),borderWidth:2},
+   label:{show:true,formatter:p=>`${(p.percent).toFixed(0)}%`,color:css('--ink'),fontSize:11,fontWeight:600},
+   data:data.map((d,i)=>({name:d[0],value:d[1],itemStyle:{color:colors[i%colors.length]}}))}]});
+}
+
+const P0=PAL();
+hbar('c_rfk',D.roug_fk,'roug','cas');
+vbar('c_rage',D.roug_age,'roug');
+vbar('c_rvac',D.roug_vac=D.roug_vacc,[P0.grey,P0.fievre,P0.palu,P0.green,P0.hosp]);
+document.getElementById('rfkIns').innerHTML=`<b>${fmt(D.roug_fk[0][1])}</b> des ${fmt(D.roug_total)} cas sont concentrés à ${D.roug_fk[0][0]}, foyer principal de la flambée.`;
+document.getElementById('rvacIns').innerHTML='Les enfants de <b>moins de 5 ans</b> paient le plus lourd tribut, et la grande majorité des cas ont un <b>statut vaccinal inconnu ou non à jour</b>.';
+
+// ---- PALU ----
+hbar('c_pfk',D.palu_fk,'palu','cas');
+vbar('c_page',D.palu_age,'palu');
+vbar('c_pforme',D.palu_forme,[P0.palu,P0.fievre,P0.gold]);
+document.getElementById('pfkIns').innerHTML=`<b>${fmt(D.palu_fk[0][1])}</b> des ${fmt(D.palu_total)} cas de paludisme proviennent de ${D.palu_fk[0][0]}.`;
+document.getElementById('pIns').innerHTML='Les <b>5-14 ans</b> sont les plus touchés ; les formes simples dominent mais plusieurs <b>paludismes graves</b> sont recensés.';
+
+// ---- HOSPIT ----
+document.getElementById('hospCtx').textContent=`n = ${D.hosp_total} patients`;
+vbar('c_hcat',D.hosp_cat,[P0.roug,P0.grey,P0.hosp,P0.fievre,P0.palu]);
+document.getElementById('hcatIns').innerHTML='La <b>rougeole</b> et les <b>co-infections rougeole + paludisme</b> représentent une large part des hospitalisations.';
+// stacked age x issue
+(function(){
+ const P=PAL();const ai=D.hosp_age_issue;
+ const icol={'Exeat':P.green,'En cours':P.fievre,'Transfert':P.navy,'Référée CHU':P.palu};
+ const series=ai.issues.map(i=>({name:i,type:'bar',stack:'t',data:ai.data[i],
+  itemStyle:{color:icol[i]},barWidth:'55%'}));
+ mk('c_hissue',{grid:{...GRID,bottom:20,top:34},
+  tooltip:baseTip({trigger:'axis',axisPointer:{type:'shadow'}}),
+  legend:{top:0,textStyle:{color:css('--muted'),fontSize:11},icon:'roundRect',itemWidth:11,itemHeight:9},
+  xAxis:{type:'category',data:ai.ages,...axisStyle(),axisLabel:{color:css('--muted'),fontSize:10}},
+  yAxis:{type:'value',...axisStyle()},series});
+})();
+document.getElementById('hissueIns').innerHTML='Les hospitalisations se concentrent chez les <b>enfants de moins de 5 ans</b> ; la majorité des issues sont des sorties (Exeat), quelques références au CHU.';
+
+// ---- DECES ----
+document.getElementById('decCtx').textContent=`n = ${D.deces_total} décès investigués`;
+vbar('c_dage',D.deces_age,'navy');
+donut('c_dlieu',D.deces_lieu,[P0.hosp,P0.palu]);
+document.getElementById('dageIns').innerHTML='Les décès touchent surtout les <b>jeunes enfants</b>, population la plus vulnérable à la rougeole et à la malnutrition associée.';
+const dcom=D.deces_lieu.find(x=>x[0]==='Communautaire')[1];
+document.getElementById('dlieuIns').innerHTML=`<b>${dcom} décès sur ${D.deces_total}</b> sont survenus dans la communauté, hors structure de soins — signe d’un recours tardif ou limité aux services de santé.`;
+
+// ---- MENAGE ----
+document.getElementById('menCtx').textContent=`${fmt(D.menage_total)} personnes · ${fmt(D.menage_nb)} ménages`;
+donut('c_men',D.menage_vacc,[P0.palu,P0.fievre,P0.green,P0.grey]);
+const nonvac=(D.menage_vacc.find(x=>x[0].startsWith('Non'))||[0,0])[1];
+document.getElementById('menIns').innerHTML='Une part importante de la population enquêtée est <b>non vaccinée ou de statut inconnu</b> — terrain favorable à la propagation de la rougeole.';
+
+// ---- SOINS ----
+document.getElementById('soinCtx').textContent=`n = ${fmt(D.soins_total)} cas pris en charge`;
+hbar('c_soin',D.soins_diag,'hosp','cas');
+document.getElementById('soinIns').innerHTML='Au plus près des communautés, la prise en charge est dominée par le <b>paludisme</b> et la <b>rougeole</b>.';
+
+renderEpiLeg();renderEpi();
+
+// ---- THEME TOGGLE ----
+const ICO_MOON='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+const ICO_SUN='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+function setIco(){const d=document.documentElement.classList.contains('dark');
+ document.getElementById('themeIco').innerHTML=d?ICO_SUN:ICO_MOON;
+ document.getElementById('themeTxt').textContent=d?'Mode clair':'Mode sombre';}
+setIco();
+document.getElementById('themeBtn').onclick=()=>{
+ document.documentElement.classList.toggle('dark');setIco();
+ setTimeout(()=>{charts.forEach(c=>c.dispose());charts.length=0;epiChart=null;rebuild();},30);
+};
+function rebuild(){
+ const P0=PAL();
+ hbar('c_rfk',D.roug_fk,'roug','cas');vbar('c_rage',D.roug_age,'roug');
+ vbar('c_rvac',D.roug_vacc,[P0.grey,P0.fievre,P0.palu,P0.green,P0.hosp]);
+ hbar('c_pfk',D.palu_fk,'palu','cas');vbar('c_page',D.palu_age,'palu');
+ vbar('c_pforme',D.palu_forme,[P0.palu,P0.fievre,P0.gold]);
+ vbar('c_hcat',D.hosp_cat,[P0.roug,P0.grey,P0.hosp,P0.fievre,P0.palu]);
+ (function(){const P=PAL();const ai=D.hosp_age_issue;const icol={'Exeat':P.green,'En cours':P.fievre,'Transfert':P.navy,'Référée CHU':P.palu};
+  const series=ai.issues.map(i=>({name:i,type:'bar',stack:'t',data:ai.data[i],itemStyle:{color:icol[i]},barWidth:'55%'}));
+  mk('c_hissue',{grid:{...GRID,bottom:20,top:34},tooltip:baseTip({trigger:'axis',axisPointer:{type:'shadow'}}),
+   legend:{top:0,textStyle:{color:css('--muted'),fontSize:11},icon:'roundRect',itemWidth:11,itemHeight:9},
+   xAxis:{type:'category',data:ai.ages,...axisStyle(),axisLabel:{color:css('--muted'),fontSize:10}},
+   yAxis:{type:'value',...axisStyle()},series});})();
+ vbar('c_dage',D.deces_age,'navy');donut('c_dlieu',D.deces_lieu,[P0.hosp,P0.palu]);
+ donut('c_men',D.menage_vacc,[P0.palu,P0.fievre,P0.green,P0.grey]);
+ hbar('c_soin',D.soins_diag,'hosp','cas');
+ renderEpi();renderEpiLeg();
+}
+window.addEventListener('resize',()=>{charts.forEach(c=>c.resize());if(epiChart)epiChart.resize();});
+
+</script>
